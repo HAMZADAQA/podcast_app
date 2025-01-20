@@ -1,0 +1,128 @@
+@import '@/styles/variables.css';
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5rem;
+  padding: 1.9rem 6rem;
+  align-items: flex-start;
+}
+
+.sidebar {
+  flex: 1;
+  max-width: 300px;
+  width: 100%;
+}
+
+.content {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-medium);
+  max-width: 100%;
+  width: 100%;
+}
+
+.episodesTitleWrapper {
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow-light);
+  padding: 0.8rem;
+  text-align: left;
+}
+
+.episodesTitle {
+  font-size: var(--font-size-large);
+  font-weight: bold;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.episodeTableWrapper {
+  padding: 0.8rem;
+  box-shadow: var(--box-shadow-light);
+  overflow-x: auto;
+}
+
+.episodesTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-small);
+  text-align: left;
+}
+
+.episodesTable th,
+.episodesTable td {
+  padding: var(--padding-small);
+  border-bottom: 1px solid var(--color-light-grey);
+}
+
+.episodesTable th {
+  font-weight: bold;
+  background-color: var(--color-lighter-grey);
+}
+
+.episodesTable td {
+  color: var(--color-text-primary);
+}
+
+.episodesTable td a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.episodesTable td a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem 2rem;
+    gap: 2rem;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sidebar {
+    max-width: 100%;
+    margin-bottom: 1.5rem;
+  }
+
+  .content {
+    max-width: 100%;
+  }
+
+  .episodesTitle {
+    font-size: 1rem;
+  }
+
+  .episodesTable th,
+  .episodesTable td {
+    font-size: 0.9rem;
+    padding: 0.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem;
+    gap: 1.5rem;
+  }
+
+  .sidebar {
+    margin-bottom: 1rem;
+  }
+
+  .episodesTitle {
+    font-size: 0.9rem;
+  }
+
+  .episodesTable th,
+  .episodesTable td {
+    font-size: 0.75rem;
+    padding: 4px;
+  }
+
+  .episodeTableWrapper {
+    padding: 0.5rem;
+  }
+}

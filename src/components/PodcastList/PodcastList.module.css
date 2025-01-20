@@ -1,0 +1,15 @@
+@import '@/styles/variables.css';
+
+.podcastList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--gap-xlarge) var(--gap-medium);
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: calc(4 * 250px + 3 * var(--gap-medium));
+}
+
+.podcastListWrapper {
+  margin-top: 80px;
+}

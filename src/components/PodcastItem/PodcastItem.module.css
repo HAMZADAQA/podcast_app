@@ -1,0 +1,47 @@
+@import '@/styles/variables.css';
+
+.podcastItem {
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+  text-align: center;
+  padding-top: 60px;
+  position: relative;
+  z-index: 1;
+}
+
+.podcastItem:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.podcastLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  font-size: var(--font-size-medium);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+.podcastLink:hover {
+  color: var(--color-hover);
+}
+
+.podcastAuthor {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.imageWrapper {
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--color-lighter-grey);
+  border-radius: 50%;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: var(--box-shadow);
+}

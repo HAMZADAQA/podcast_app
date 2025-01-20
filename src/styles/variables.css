@@ -1,0 +1,48 @@
+:root {
+  /* Font Families */
+  --font-family: sans-serif;
+
+  /* Colors */
+  --color-primary: #6c97c5;
+  --color-secondary: #4682b4;
+  --color-hover: #4a80a3;
+  --color-white: #ffffff;
+  --color-light-grey: #ddd;
+  --color-dark-grey: #5d5c5c;
+  --color-lighter-grey: #f9f9f9;
+  --color-error: #ff4d4d;
+  --color-error-bg: #ffe6e6;
+  --color-text-primary: #333;
+  --color-text-secondary: #666;
+
+  /* Font Sizes */
+  --font-size-small: 0.85rem;
+  --font-size-medium: 1rem;
+  --font-size-large: 1.2rem;
+  --font-size-title: 1.3rem;
+  --font-size-header: 24px;
+
+  /* Spacing */
+  --gap-small: 5px;
+  --gap-medium: 20px;
+  --gap-large: 60px;
+  --gap-xlarge: 80px;
+  --gap-small-medium: 12px;
+
+  /* Padding */
+  --padding-small: 8px;
+  --padding-medium: 12px;
+  --padding-large: 15px;
+
+  /* Layout */
+  --container-max-width: 1280px;
+  --container-padding: 2rem;
+
+  /* Borders and Shadows */
+  --border-radius: 8px;
+  --box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  --box-shadow-light: rgba(0, 0, 0, 0.15) 0px 3px 6px;
+
+  /* Transitions */
+  --transition: transform 0.3s ease, box-shadow 0.3s ease;
+}

@@ -1,0 +1,35 @@
+@import '@/styles/variables.css';
+
+.errorContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px auto;
+  padding: var(--padding-large) var(--padding-medium);
+  color: var(--color-error);
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow-light);
+  max-width: 300px;
+  text-align: center;
+}
+
+.errorMessage {
+  font-size: var(--font-size-large);
+  margin-bottom: 10px;
+}
+
+.retryButton {
+  background-color: var(--color-error);
+  color: var(--color-white);
+  border: none;
+  padding: var(--padding-medium) var(--padding-large);
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: var(--font-size-medium);
+}
+
+.retryButton:hover {
+  background-color: #d14040;
+}

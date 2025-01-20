@@ -1,0 +1,29 @@
+@import '@/styles/variables.css';
+
+.search {
+  width: 100%;
+  max-width: 300px;
+  padding: var(--padding-medium);
+  font-size: var(--font-size-medium);
+  font-family: 'Arial', sans-serif;
+  border: 1px solid var(--color-light-grey);
+  border-radius: 5px;
+  outline: none;
+  text-transform: capitalize;
+
+  &::placeholder {
+    color: var(--color-text-secondary);
+    font-style: italic;
+  }
+
+  &:not(:placeholder-shown) {
+    color: var(--color-hover);
+    font-size: 1rem;
+    font-weight: 100;
+  }
+
+  &:focus {
+    border-color: var(--color-secondary);
+    box-shadow: 0 0 5px var(--color-secondary);
+  }
+}

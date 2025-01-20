@@ -1,0 +1,108 @@
+@import '@/styles/variables.css';
+
+.container {
+  display: flex;
+  gap: 5rem;
+  padding: 1.9rem 6rem;
+  align-items: flex-start;
+}
+
+.sidebar {
+  flex: 1;
+  max-width: 300px;
+}
+
+.podcastImage {
+  width: 100%;
+}
+
+.podcastTitle {
+  font-size: var(--font-size-large);
+  font-weight: bold;
+}
+
+.podcastAuthor {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.8rem;
+}
+
+.podcastDescription {
+  font-size: var(--font-size-small);
+  color: var(--color-text-primary);
+}
+
+.mainContent {
+  flex: 2;
+  padding: 1.5rem;
+  box-shadow: var(--box-shadow);
+  border-radius: var(--border-radius);
+  background-color: var(--color-white);
+  display: flex;
+  flex-direction: column;
+}
+
+.episodeTitle {
+  font-size: var(--font-size-title);
+  font-weight: bold;
+  margin-bottom: 0.8rem;
+}
+
+.episodeDescription {
+  font-size: 0.95rem;
+  color: var(--color-dark-grey);
+}
+
+.audioCard {
+  background-color: var(--color-white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.audioPlayer {
+  width: 100%;
+  border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    max-width: 100%;
+  }
+
+  .sidebar {
+    max-width: 100%;
+    margin-bottom: 1.5rem;
+  }
+
+  .mainContent {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .podcastTitle {
+    font-size: 0.9rem;
+  }
+
+  .episodeTitle {
+    font-size: 1rem;
+  }
+
+  .podcastDescription,
+  .episodeDescription {
+    font-size: 0.8rem;
+  }
+
+  .audioPlayer {
+    width: 100%;
+  }
+}
