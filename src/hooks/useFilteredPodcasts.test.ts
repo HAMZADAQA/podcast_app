@@ -1,65 +1,45 @@
 import { renderHook } from '@testing-library/react';
 import useFilteredPodcasts from '@/hooks/useFilteredPodcasts';
-import { Podcast } from '@/types/PodcastTypes';
-
-const mockPodcasts: Podcast[] = [
-  {
-    id: '1',
-    name: 'Tech Talk',
-    artist: 'Tech Guru',
-    artwork: 'https://example.com/image1.jpg',
-    summary: 'A podcast about tech.',
-  },
-  {
-    id: '2',
-    name: 'Health Matters',
-    artist: 'Wellness Pro',
-    artwork: 'https://example.com/image2.jpg',
-    summary: 'Discussions on health and wellness.',
-  },
-  {
-    id: '3',
-    name: 'The Joe Budden Podcast',
-    artist: 'The Joe Budden Network',
-    artwork: 'https://example.com/image3.jpg',
-    summary: 'Tune into Joe Budden and his friends.',
-  },
-];
+import { mockCachedPodcastData } from '@/api/services/__mocks__/podcastMocks';
 
 describe('useFilteredPodcasts', () => {
   it('returns all podcasts when no search term is provided', () => {
-    const { result } = renderHook(() => useFilteredPodcasts(mockPodcasts, ''));
+    const { result } = renderHook(() =>
+      useFilteredPodcasts(mockCachedPodcastData, '')
+    );
 
-    expect(result.current).toEqual(mockPodcasts);
+    expect(result.current).toEqual(mockCachedPodcastData);
   });
 
   it('filters podcasts by name', () => {
     const { result } = renderHook(() =>
-      useFilteredPodcasts(mockPodcasts, 'Tech')
+      useFilteredPodcasts(mockCachedPodcastData, 'Joe')
     );
 
     expect(result.current).toEqual([
       {
-        id: '1',
-        name: 'Tech Talk',
-        artist: 'Tech Guru',
-        artwork: 'https://example.com/image1.jpg',
-        summary: 'A podcast about tech.',
+        id: '1535809341',
+        name: 'The Joe Budden Podcast',
+        artist: 'The Joe Budden Network',
+        artwork:
+          'https://is1-ssl.mzstatic.com/image/thumb/Podcasts113/v4/f2/21/fa/f221fabd-017f-5125-633b-f1fe4f39802a/mza_182995249085044287.jpg/170x170bb.png',
+        summary: 'Tune into Joe Budden and his friends.',
       },
     ]);
   });
 
   it('filters podcasts by artist', () => {
     const { result } = renderHook(() =>
-      useFilteredPodcasts(mockPodcasts, 'Joe Budden')
+      useFilteredPodcasts(mockCachedPodcastData, 'The Joe Budden Network')
     );
 
     expect(result.current).toEqual([
       {
-        id: '3',
+        id: '1535809341',
         name: 'The Joe Budden Podcast',
         artist: 'The Joe Budden Network',
-        artwork: 'https://example.com/image3.jpg',
+        artwork:
+          'https://is1-ssl.mzstatic.com/image/thumb/Podcasts113/v4/f2/21/fa/f221fabd-017f-5125-633b-f1fe4f39802a/mza_182995249085044287.jpg/170x170bb.png',
         summary: 'Tune into Joe Budden and his friends.',
       },
     ]);
@@ -67,15 +47,16 @@ describe('useFilteredPodcasts', () => {
 
   it('is case insensitive when filtering', () => {
     const { result } = renderHook(() =>
-      useFilteredPodcasts(mockPodcasts, 'joE buDDen')
+      useFilteredPodcasts(mockCachedPodcastData, 'joE buDDen')
     );
 
     expect(result.current).toEqual([
       {
-        id: '3',
+        id: '1535809341',
         name: 'The Joe Budden Podcast',
         artist: 'The Joe Budden Network',
-        artwork: 'https://example.com/image3.jpg',
+        artwork:
+          'https://is1-ssl.mzstatic.com/image/thumb/Podcasts113/v4/f2/21/fa/f221fabd-017f-5125-633b-f1fe4f39802a/mza_182995249085044287.jpg/170x170bb.png',
         summary: 'Tune into Joe Budden and his friends.',
       },
     ]);
@@ -83,7 +64,7 @@ describe('useFilteredPodcasts', () => {
 
   it('returns an empty array when no podcasts match the search term', () => {
     const { result } = renderHook(() =>
-      useFilteredPodcasts(mockPodcasts, 'Nonexistent')
+      useFilteredPodcasts(mockCachedPodcastData, 'Nonexistent')
     );
 
     expect(result.current).toEqual([]);
