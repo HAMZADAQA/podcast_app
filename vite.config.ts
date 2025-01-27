@@ -6,16 +6,14 @@ import path from 'path';
 export default defineConfig(({ mode }) => ({
   plugins: [react(), tsconfigPaths()],
   server: {
-    proxy:
-      mode === 'development'
-        ? {
-            '/api': {
-              target: 'https://itunes.apple.com',
-              changeOrigin: true,
-              rewrite: (path) => path.replace(/^\/api/, ''),
-            },
-          }
-        : undefined,
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: 'https://itunes.apple.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
   },
   build: {
     outDir: 'dist',

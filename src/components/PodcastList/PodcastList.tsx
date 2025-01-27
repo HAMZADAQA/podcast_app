@@ -7,7 +7,7 @@ interface PodcastListProps {
   podcasts: Podcast[];
 }
 
-const PodcastList: React.FC<PodcastListProps> = ({ podcasts }) => {
+const PodcastList: React.FC<PodcastListProps> = React.memo(({ podcasts }) => {
   if (!podcasts || podcasts.length === 0) {
     return null;
   }
@@ -21,6 +21,6 @@ const PodcastList: React.FC<PodcastListProps> = ({ podcasts }) => {
       </ul>
     </div>
   );
-};
+});
 
 export default PodcastList;

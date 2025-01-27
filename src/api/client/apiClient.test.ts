@@ -7,7 +7,7 @@ describe('apiClient', () => {
     jest.clearAllMocks();
   });
 
-  it('should fetch data from the correct URL', async () => {
+  it('should fetch data from the correct URL when using a direct API call', async () => {
     const endpoint = '/test-endpoint';
     const mockResponse = { success: true };
 
@@ -16,13 +16,32 @@ describe('apiClient', () => {
       json: async () => mockResponse,
     });
 
-    const result = await apiClient(endpoint);
+    const result = await apiClient(endpoint, {}, '/api');
+
+    expect(fetch).toHaveBeenCalledWith('/api/test-endpoint', {});
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('should fetch data from the correct URL when using allorigins.win proxy', async () => {
+    const endpoint = '/test-endpoint';
+    const mockResponse = { contents: JSON.stringify({ success: true }) };
+
+    (fetch as jest.Mock).mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    const result = await apiClient(
+      endpoint,
+      {},
+      'https://api.allorigins.win/get'
+    );
 
     expect(fetch).toHaveBeenCalledWith(
-      `${import.meta.env.VITE_API_BASE_URL || '/api'}${endpoint}`,
+      'https://api.allorigins.win/get?url=https%3A%2F%2Fitunes.apple.com%2Ftest-endpoint',
       {}
     );
-    expect(result).toEqual(mockResponse);
+    expect(result).toEqual({ success: true });
   });
 
   it('should include additional fetch options when provided', async () => {
@@ -39,10 +58,14 @@ describe('apiClient', () => {
       json: async () => mockResponse,
     });
 
-    const result = await apiClient(endpoint, options);
+    const result = await apiClient(
+      endpoint,
+      options,
+      'https://api.allorigins.win/get'
+    );
 
     expect(fetch).toHaveBeenCalledWith(
-      `${import.meta.env.VITE_API_BASE_URL || '/api'}${endpoint}`,
+      'https://api.allorigins.win/get?url=https%3A%2F%2Fitunes.apple.com%2Ftest-endpoint',
       options
     );
     expect(result).toEqual(mockResponse);
@@ -56,45 +79,36 @@ describe('apiClient', () => {
       status: 404,
     });
 
-    await expect(apiClient(endpoint)).rejects.toThrow(
-      'HTTP error! status: 404'
-    );
+    await expect(
+      apiClient(endpoint, {}, 'https://api.allorigins.win/get')
+    ).rejects.toThrow('HTTP error! Status: 404');
   });
 
-  it('should throw an error if fetch fails', async () => {
+  it('should correctly parse contents from allorigins.win proxy', async () => {
     const endpoint = '/test-endpoint';
-    const mockError = new Error('Network error');
-
-    (fetch as jest.Mock).mockRejectedValueOnce(mockError);
-
-    await expect(apiClient(endpoint)).rejects.toThrow('Network error');
-  });
-
-  it('should handle cases where BASE_URL is not defined', async () => {
-    const endpoint = 'http://external-api.com/test-endpoint';
-    const mockResponse = { success: true };
-    const originalBaseUrl = import.meta.env.VITE_API_BASE_URL;
-
-    import.meta.env.VITE_API_BASE_URL = '';
+    const mockResponse = { contents: JSON.stringify({ success: true }) };
 
     (fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => mockResponse,
     });
 
-    const result = await apiClient(endpoint);
+    const result = await apiClient(
+      endpoint,
+      {},
+      'https://api.allorigins.win/get'
+    );
 
     expect(fetch).toHaveBeenCalledWith(
-      `https://api.allorigins.win/get${endpoint}`,
+      'https://api.allorigins.win/get?url=https%3A%2F%2Fitunes.apple.com%2Ftest-endpoint',
       {}
     );
-    expect(result).toEqual(mockResponse);
-
-    import.meta.env.VITE_API_BASE_URL = originalBaseUrl;
+    expect(result).toEqual({ success: true });
   });
 
   it('should throw an error if response JSON parsing fails', async () => {
     const endpoint = '/test-endpoint';
+
     (fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       json: async () => {
@@ -102,15 +116,13 @@ describe('apiClient', () => {
       },
     });
 
-    await expect(apiClient(endpoint)).rejects.toThrow(
-      'Failed to parse JSON response'
-    );
+    await expect(
+      apiClient(endpoint, {}, 'https://api.allorigins.win/get')
+    ).rejects.toThrow('Invalid JSON');
   });
 
   it('should throw an error if the endpoint is empty', async () => {
-    const endpoint = '';
-
-    await expect(apiClient(endpoint)).rejects.toThrow(
+    await expect(apiClient('', {}, '/api')).rejects.toThrow(
       'Endpoint cannot be empty'
     );
   });

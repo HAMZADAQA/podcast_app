@@ -8,7 +8,7 @@ interface PodcastItemProps {
   podcast: Podcast;
 }
 
-const PodcastItem: React.FC<PodcastItemProps> = ({ podcast }) => {
+const PodcastItem: React.FC<PodcastItemProps> = React.memo(({ podcast }) => {
   return (
     <li className={styles.podcastItem}>
       <div className={styles.imageWrapper}>
@@ -24,6 +24,6 @@ const PodcastItem: React.FC<PodcastItemProps> = ({ podcast }) => {
       </div>
     </li>
   );
-};
+});
 
 export default PodcastItem;

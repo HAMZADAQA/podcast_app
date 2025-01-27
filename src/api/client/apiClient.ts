@@ -1,34 +1,47 @@
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+/**
+ * Build the full URL for the API request.
+ * Handles proxy logic for allorigins.win.
+ * @param baseUrl - The base URL of the API.
+ * @param endpoint - The relative API endpoint.
+ * @returns The full URL for the API request.
+ */
+const buildUrl = (baseUrl: string, endpoint: string): string => {
+  const isProxy = baseUrl.includes('allorigins.win');
+  return isProxy
+    ? `${baseUrl}?url=${encodeURIComponent(`https://itunes.apple.com${endpoint}`)}`
+    : `${baseUrl}${endpoint}`;
+};
 
 /**
- * Fetch data from the configured API.
- * @param endpoint - Relative endpoint (e.g., `/us/rss/toppodcasts/limit=100/genre=1310/json`).
- * @param options - Additional fetch options.
+ * Centralized function to fetch data from the API.
+ * @param endpoint - The relative API endpoint.
+ * @param options - Additional fetch options (e.g., headers, body).
+ * @param baseUrl - Optional base URL for overriding (used in tests or dynamic cases).
  * @returns Parsed JSON response.
  */
 export const apiClient = async <T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  baseUrl?: string
 ): Promise<T> => {
   if (!endpoint) {
     throw new Error('Endpoint cannot be empty');
   }
 
-  const url = BASE_URL ? `${BASE_URL}${endpoint}` : endpoint;
+  const BASE_URL = baseUrl || import.meta.env.VITE_API_BASE_URL || '/api';
+  const url = buildUrl(BASE_URL, endpoint);
 
   try {
     const response = await fetch(url, options);
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
-    try {
-      return await response.json();
-    } catch (error) {
-      console.error('[API Client] Failed to parse JSON response:', error);
-      throw new Error('Failed to parse JSON response');
-    }
+    const rawData = await response.json();
+    return BASE_URL.includes('allorigins.win') && rawData.contents
+      ? JSON.parse(rawData.contents)
+      : rawData;
   } catch (error) {
     console.error('[API Client] Error:', error);
     throw error;
