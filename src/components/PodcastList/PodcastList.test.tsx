@@ -1,57 +1,67 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
 import PodcastList from './PodcastList';
+import { MemoryRouter } from 'react-router-dom';
 import { mockCachedPodcastData } from '@/api/services/__mocks__/podcastMocks';
-import { Podcast } from '@/types/PodcastTypes';
 
-describe('PodcastList Component', () => {
-  it('renders nothing when the podcasts array is empty', () => {
-    const { container } = render(
-      <MemoryRouter>
-        <PodcastList podcasts={[]} />
-      </MemoryRouter>
-    );
+beforeAll(() => {
+  (global as any).IntersectionObserver = class {
+    constructor(callback: any, options?: any) {}
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+});
 
-    // Ensure no content is rendered
-    expect(container.firstChild).toBeNull();
-  });
+jest.mock(
+  '../PodcastItem/PodcastItem',
+  () =>
+    ({ podcast }: { podcast: any }) => (
+      <div data-testid='podcast-item'>{podcast.name}</div>
+    )
+);
+jest.mock('../Skeleton/PodcastItemSkeleton/PodcastItemSkeleton', () => () => (
+  <div data-testid='skeleton' />
+));
 
-  it('renders the correct number of PodcastItem components when podcasts are provided', () => {
+describe('PodcastList', () => {
+  it('renders skeletons when loading is true', () => {
     render(
       <MemoryRouter>
-        <PodcastList podcasts={mockCachedPodcastData as Podcast[]} />
+        <PodcastList podcasts={mockCachedPodcastData} loading={true} />
       </MemoryRouter>
     );
-
-    // Check that the correct number of PodcastItem components is rendered
-    const podcastItems = screen.getAllByRole('listitem');
-    expect(podcastItems).toHaveLength(mockCachedPodcastData.length);
-
-    // Verify the rendered content matches the mock data
-    mockCachedPodcastData.forEach((podcast) => {
-      expect(screen.getByText(podcast.name)).toBeInTheDocument();
-      expect(
-        screen.getByText(new RegExp(`Author: ${podcast.artist}`, 'i'))
-      ).toBeInTheDocument();
-    });
+    expect(screen.getAllByTestId('skeleton').length).toBe(8);
   });
 
-  it('renders nothing when podcasts prop is undefined or null', () => {
+  it('renders podcasts and a sentinel when podcasts.length > visibleCount', () => {
+    const manyPodcasts = Array.from({ length: 25 }, (_, i) => ({
+      ...mockCachedPodcastData[0],
+      id: String(i + 1),
+      name: `Podcast ${i + 1}`,
+    }));
     const { container } = render(
       <MemoryRouter>
-        {/* Passing undefined */}
-        <PodcastList podcasts={undefined as unknown as Podcast[]} />
+        <PodcastList podcasts={manyPodcasts} loading={false} />
       </MemoryRouter>
     );
-    expect(container.firstChild).toBeNull();
+    expect(screen.getAllByTestId('podcast-item').length).toBe(20);
+    const sentinel = container.querySelector('div[style*="20px"]');
+    expect(sentinel).toBeInTheDocument();
+  });
 
-    const { container: nullContainer } = render(
+  it('renders all podcasts and no sentinel when podcasts.length <= visibleCount', () => {
+    const fewPodcasts = Array.from({ length: 10 }, (_, i) => ({
+      ...mockCachedPodcastData[0],
+      id: String(i + 1),
+      name: `Podcast ${i + 1}`,
+    }));
+    const { container } = render(
       <MemoryRouter>
-        {/* Passing null */}
-        <PodcastList podcasts={null as unknown as Podcast[]} />
+        <PodcastList podcasts={fewPodcasts} loading={false} />
       </MemoryRouter>
     );
-    expect(nullContainer.firstChild).toBeNull();
+    expect(screen.getAllByTestId('podcast-item').length).toBe(10);
+    const sentinel = container.querySelector('div[style*="20px"]');
+    expect(sentinel).toBeNull();
   });
 });

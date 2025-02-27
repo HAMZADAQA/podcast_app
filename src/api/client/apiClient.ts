@@ -5,11 +5,20 @@
  * @param endpoint - The relative API endpoint.
  * @returns The full URL for the API request.
  */
-const buildUrl = (baseUrl: string, endpoint: string): string => {
-  const isProxy = baseUrl.includes('allorigins.win');
-  return isProxy
-    ? `${baseUrl}?url=${encodeURIComponent(`https://itunes.apple.com${endpoint}`)}`
-    : `${baseUrl}${endpoint}`;
+export const buildUrl = (baseUrl: string, endpoint: string): string => {
+  if (import.meta.env.DEV || process.env.NODE_ENV === 'test') {
+    return endpoint;
+  }
+
+  if (endpoint.startsWith('/lookup')) {
+    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(`${baseUrl}${endpoint}`)}`;
+    if (!endpoint.includes('limit=20')) {
+      return proxyUrl + '&limit=20';
+    }
+    return proxyUrl;
+  }
+
+  return `${baseUrl}${endpoint}`;
 };
 
 /**
@@ -28,7 +37,8 @@ export const apiClient = async <T>(
     throw new Error('Endpoint cannot be empty');
   }
 
-  const BASE_URL = baseUrl || import.meta.env.VITE_API_BASE_URL || '/api';
+  const BASE_URL =
+    baseUrl || import.meta.env.VITE_API_BASE_URL || 'https://itunes.apple.com';
   const url = buildUrl(BASE_URL, endpoint);
 
   try {
@@ -39,9 +49,7 @@ export const apiClient = async <T>(
     }
 
     const rawData = await response.json();
-    return BASE_URL.includes('allorigins.win') && rawData.contents
-      ? JSON.parse(rawData.contents)
-      : rawData;
+    return rawData.contents ? JSON.parse(rawData.contents) : rawData;
   } catch (error) {
     console.error('[API Client] Error:', error);
     throw error;

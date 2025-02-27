@@ -1,82 +1,33 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-  useCallback,
-} from 'react';
-import {
-  fetchPodcasts,
-  fetchPodcastDetails,
-} from '@/api/services/podcastService';
+import React, { createContext, ReactNode, useContext } from 'react';
 import { Podcast, DetailedPodcast } from '@/types/PodcastTypes';
+import { usePodcastsData } from '@/hooks/usePodcastsData';
 
-interface PodcastContextType {
+export interface PodcastContextType {
   podcasts: Podcast[];
-  podcastDetail: DetailedPodcast | null;
-  error: string | null;
-  fetchPodcastDetail: (id: string) => Promise<void>;
-  globalLoading: boolean;
+  podcastsLoading: boolean;
+  podcastsError: string | null;
+  podcastDetails: { [podcastId: string]: DetailedPodcast };
+  fetchPodcastDetail: (podcastId: string, prefetch?: boolean) => Promise<void>;
 }
 
-interface PodcastProviderProps {
-  children: ReactNode;
-}
+export const PodcastContext = createContext<PodcastContextType | undefined>(
+  undefined
+);
 
-const PodcastContext = createContext<PodcastContextType | undefined>(undefined);
-
-export const PodcastProvider: React.FC<PodcastProviderProps> = ({
+export const PodcastProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [podcasts, setPodcasts] = useState<Podcast[]>([]);
-  const [podcastDetail, setPodcastDetail] = useState<DetailedPodcast | null>(
-    null
-  );
-  const [error, setError] = useState<string | null>(null);
-  const [globalLoading, setGlobalLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchAllPodcasts = async () => {
-      try {
-        setGlobalLoading(true);
-        const data = await fetchPodcasts();
-        setPodcasts(data);
-        setError(null);
-      } catch (err) {
-        console.error('Failed to fetch podcasts:', err);
-        setError('Unable to fetch podcasts.');
-      } finally {
-        setGlobalLoading(false);
-      }
-    };
-
-    fetchAllPodcasts();
-  }, []);
-
-  const fetchPodcastDetail = useCallback(async (id: string) => {
-    try {
-      setGlobalLoading(true);
-      const detail = await fetchPodcastDetails(id);
-      setPodcastDetail(detail);
-      setError(null);
-    } catch (err) {
-      console.error('Failed to fetch podcast details:', err);
-      setError('Unable to fetch podcast details.');
-      setPodcastDetail(null);
-    } finally {
-      setGlobalLoading(false);
-    }
-  }, []);
+  const { podcasts, podcastDetails, loading, error, loadPodcastDetail } =
+    usePodcastsData();
 
   return (
     <PodcastContext.Provider
       value={{
         podcasts,
-        podcastDetail,
-        error,
-        fetchPodcastDetail,
-        globalLoading,
+        podcastsLoading: loading,
+        podcastsError: error,
+        podcastDetails,
+        fetchPodcastDetail: loadPodcastDetail,
       }}
     >
       {children}
@@ -84,10 +35,12 @@ export const PodcastProvider: React.FC<PodcastProviderProps> = ({
   );
 };
 
-export const usePodcastContext = (): PodcastContextType => {
+export const usePodcastContext = () => {
   const context = useContext(PodcastContext);
+
   if (!context) {
     throw new Error('usePodcastContext must be used within a PodcastProvider');
   }
+
   return context;
 };

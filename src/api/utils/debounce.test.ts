@@ -10,7 +10,6 @@ describe('debounce Utility', () => {
     debouncedFunction();
     expect(mockFunction).not.toHaveBeenCalled();
 
-    // Fast-forward time
     jest.advanceTimersByTime(300);
     expect(mockFunction).toHaveBeenCalledTimes(1);
   });
@@ -30,14 +29,12 @@ describe('debounce Utility', () => {
     const debouncedFunction = debounce(mockFunction, 300);
 
     debouncedFunction();
-    jest.advanceTimersByTime(200); // Call before the delay ends
+    jest.advanceTimersByTime(200);
     debouncedFunction();
     jest.advanceTimersByTime(200);
 
-    // Function should not have been called yet
     expect(mockFunction).not.toHaveBeenCalled();
 
-    // Advance remaining time
     jest.advanceTimersByTime(100);
     expect(mockFunction).toHaveBeenCalledTimes(1);
   });

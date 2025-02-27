@@ -1,175 +1,86 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import PodcastEpisode from './PodcastEpisode';
-import { usePodcastContext } from '@/context/PodcastContext';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { usePodcastDetail } from '@/hooks/usePodcastDetail';
 import { mockCachedPodcastDetails } from '@/api/services/__mocks__/podcastMocks';
 
-jest.mock('@/context/PodcastContext', () => ({
-  usePodcastContext: jest.fn(),
-}));
+jest.mock('@/hooks/usePodcastDetail');
+jest.mock('@/components/PodcastCard/PodcastCard', () => (props: any) => (
+  <div data-testid='podcast-card'>{props.title}</div>
+));
+jest.mock('@/components/ErrorMessage/ErrorMessage', () => (props: any) => (
+  <div data-testid='error-message'>{props.message}</div>
+));
 
-jest.mock('@/components/PodcastCard/PodcastCard', () =>
-  jest.fn(() => <div data-testid='podcast-card'></div>)
-);
+describe('PodcastEpisode', () => {
+  const mockedUsePodcastDetail = usePodcastDetail as jest.Mock;
 
-jest.mock('@/components/ErrorMessage/ErrorMessage', () =>
-  jest.fn(({ message }) => <div data-testid='error-message'>{message}</div>)
-);
-
-describe('PodcastEpisode Component', () => {
-  const podcastId = mockCachedPodcastDetails.id;
-  const episode = mockCachedPodcastDetails.episodes[0];
-  const episodeId = episode.trackId.toString();
-  const mockFetchPodcastDetail = jest.fn();
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('renders null when podcast details are loading', () => {
-    (usePodcastContext as jest.Mock).mockReturnValue({
+  it('renders error message when no podcastId is provided', () => {
+    mockedUsePodcastDetail.mockReturnValue({
+      podcastId: null,
       podcastDetail: null,
-      fetchPodcastDetail: mockFetchPodcastDetail,
     });
-
     render(
-      <MemoryRouter
-        initialEntries={[`/podcast/${podcastId}/episode/${episodeId}`]}
-      >
-        <Routes>
-          <Route
-            path='/podcast/:podcastId/episode/:episodeId'
-            element={<PodcastEpisode />}
-          />
-        </Routes>
+      <MemoryRouter initialEntries={['/podcast/episode/1']}>
+        <PodcastEpisode />
       </MemoryRouter>
     );
-
-    // Verify that nothing is rendered initially
-    expect(screen.queryByTestId('podcast-card')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('error-message')).not.toBeInTheDocument();
-
-    // Verify that fetchPodcastDetail is called
-    expect(mockFetchPodcastDetail).toHaveBeenCalledWith(podcastId);
+    expect(screen.getByTestId('error-message')).toHaveTextContent(
+      'No podcast selected.'
+    );
   });
 
-  it('renders an error message when the podcast details are not available', () => {
-    (usePodcastContext as jest.Mock).mockReturnValue({
-      podcastDetail: { id: podcastId, episodes: [] }, // Correct podcastId but no episodes
-      fetchPodcastDetail: mockFetchPodcastDetail,
+  it('renders loading message when podcastDetail is null', () => {
+    mockedUsePodcastDetail.mockReturnValue({
+      podcastId: '1535809341',
+      podcastDetail: null,
     });
-
     render(
-      <MemoryRouter
-        initialEntries={[`/podcast/${podcastId}/episode/${episodeId}`]}
-      >
-        <Routes>
-          <Route
-            path='/podcast/:podcastId/episode/:episodeId'
-            element={<PodcastEpisode />}
-          />
-        </Routes>
+      <MemoryRouter initialEntries={['/podcast/episode/1']}>
+        <PodcastEpisode />
       </MemoryRouter>
     );
-
-    // Verify fetchPodcastDetail was called
-    expect(mockFetchPodcastDetail).not.toHaveBeenCalled();
-
-    // Assert the error message is rendered
-    expect(screen.getByTestId('error-message')).toBeInTheDocument();
-    expect(screen.getByText('Episode not found.')).toBeInTheDocument();
+    expect(screen.getByText('Loading episode details...')).toBeInTheDocument();
   });
 
-  it('renders an error message when the episode is not found', () => {
-    (usePodcastContext as jest.Mock).mockReturnValue({
+  it('renders error message when episode is not found', () => {
+    mockedUsePodcastDetail.mockReturnValue({
+      podcastId: '1535809341',
+      podcastDetail: { ...mockCachedPodcastDetails, episodes: [] },
+    });
+    render(
+      <MemoryRouter initialEntries={['/podcast/episode/1']}>
+        <PodcastEpisode />
+      </MemoryRouter>
+    );
+    expect(screen.getByTestId('error-message')).toHaveTextContent(
+      'Episode not found.'
+    );
+  });
+
+  it('renders PodcastCard and episode details when episode is found', () => {
+    mockedUsePodcastDetail.mockReturnValue({
+      podcastId: '1535809341',
       podcastDetail: mockCachedPodcastDetails,
-      fetchPodcastDetail: mockFetchPodcastDetail,
     });
-
     render(
-      <MemoryRouter initialEntries={[`/podcast/${podcastId}/episode/9999`]}>
+      <MemoryRouter initialEntries={['/podcast/episode/1']}>
         <Routes>
           <Route
-            path='/podcast/:podcastId/episode/:episodeId'
+            path='/podcast/episode/:episodeId'
             element={<PodcastEpisode />}
           />
         </Routes>
       </MemoryRouter>
     );
-
-    // Assert that the error message is rendered
-    expect(screen.getByTestId('error-message')).toBeInTheDocument();
-    expect(screen.getByText('Episode not found.')).toBeInTheDocument();
-  });
-
-  it('renders the podcast episode details when data is available', () => {
-    (usePodcastContext as jest.Mock).mockReturnValue({
-      podcastDetail: mockCachedPodcastDetails,
-      fetchPodcastDetail: mockFetchPodcastDetail,
-    });
-
-    render(
-      <MemoryRouter
-        initialEntries={[`/podcast/${podcastId}/episode/${episodeId}`]}
-      >
-        <Routes>
-          <Route
-            path='/podcast/:podcastId/episode/:episodeId'
-            element={<PodcastEpisode />}
-          />
-        </Routes>
-      </MemoryRouter>
+    expect(screen.getByTestId('podcast-card')).toHaveTextContent(
+      'The Joe Budden Podcast'
     );
-
-    // Verify that the PodcastCard is rendered
-    expect(screen.getByTestId('podcast-card')).toBeInTheDocument();
-
-    // Verify the episode title and description
-    expect(screen.getByText(episode.trackName)).toBeInTheDocument();
-    expect(
-      screen.getByText(episode.description || 'No description available.')
-    ).toBeInTheDocument();
-
-    // Verify the audio player
-    const audioElement = screen.getByTestId('audio-player');
-    expect(audioElement).toBeInTheDocument();
-
-    // Verify the audio source
-    const sourceElement = screen.getByTestId('audio-source');
-    expect(sourceElement).toHaveAttribute('src', episode.episodeUrl);
-  });
-
-  it('renders fallback text when the episode has no description', () => {
-    const podcastDetailWithNoDescription = {
-      ...mockCachedPodcastDetails,
-      episodes: [
-        {
-          ...episode,
-          description: '',
-        },
-      ],
-    };
-
-    (usePodcastContext as jest.Mock).mockReturnValue({
-      podcastDetail: podcastDetailWithNoDescription,
-      fetchPodcastDetail: mockFetchPodcastDetail,
-    });
-
-    render(
-      <MemoryRouter
-        initialEntries={[`/podcast/${podcastId}/episode/${episodeId}`]}
-      >
-        <Routes>
-          <Route
-            path='/podcast/:podcastId/episode/:episodeId'
-            element={<PodcastEpisode />}
-          />
-        </Routes>
-      </MemoryRouter>
+    expect(screen.getByText('Episode 790')).toBeInTheDocument();
+    const audioSource = screen.getByTestId('audio-source');
+    expect(audioSource).toHaveAttribute(
+      'src',
+      'https://verifi.podscribe.com/rss/p/traffic.libsyn.com/secure/jbpod/Joe_Budden_Podcast_790.mp3?dest-id=2422538'
     );
-
-    // Verify the fallback description
-    expect(screen.getByText('No description available.')).toBeInTheDocument();
   });
 });

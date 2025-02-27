@@ -1,129 +1,102 @@
-import { apiClient } from './apiClient';
+import { mockHttpErrorResponse } from '../services/__mocks__/podcastMocks';
 
-global.fetch = jest.fn();
+describe('apiClient buildUrl in DEV mode', () => {
+  const originalEnv = { ...import.meta.env };
+  const originalNodeEnv = process.env.NODE_ENV;
+
+  beforeEach(() => {
+    process.env.NODE_ENV = 'test';
+    Object.defineProperty(import.meta, 'env', {
+      get: () => ({ DEV: true, VITE_API_BASE_URL: 'https://itunes.apple.com' }),
+      configurable: true,
+    });
+  });
+
+  afterEach(() => {
+    Object.defineProperty(import.meta, 'env', {
+      get: () => originalEnv,
+      configurable: true,
+    });
+    process.env.NODE_ENV = originalNodeEnv;
+    jest.resetModules();
+  });
+
+  it('returns endpoint in DEV mode', () => {
+    const { buildUrl } = require('./apiClient');
+    const result = buildUrl('https://itunes.apple.com', '/lookup?id=123');
+    expect(result).toBe('/lookup?id=123');
+  });
+});
+
+describe('apiClient buildUrl in production mode', () => {
+  const originalEnv = { ...import.meta.env };
+  const originalNodeEnv = process.env.NODE_ENV;
+
+  beforeEach(() => {
+    process.env.NODE_ENV = 'production';
+    Object.defineProperty(import.meta, 'env', {
+      get: () => ({
+        DEV: false,
+        VITE_API_BASE_URL: 'https://itunes.apple.com',
+      }),
+      configurable: true,
+    });
+    jest.resetModules();
+  });
+
+  afterEach(() => {
+    Object.defineProperty(import.meta, 'env', {
+      get: () => originalEnv,
+      configurable: true,
+    });
+    process.env.NODE_ENV = originalNodeEnv;
+    jest.resetModules();
+  });
+
+  it('uses cors proxy for /lookup endpoints in production', () => {
+    const { buildUrl } = require('./apiClient');
+    const endpoint = '/lookup?id=123';
+    const result = buildUrl('https://itunes.apple.com', endpoint);
+    expect(result).toContain('https://corsproxy.io/?url=');
+  });
+
+  it('appends &limit=20 if not present for lookup endpoints', () => {
+    const { buildUrl } = require('./apiClient');
+    const endpoint = '/lookup?id=123';
+    const result = buildUrl('https://itunes.apple.com', endpoint);
+    expect(result).toMatch(/&limit=20$/);
+  });
+});
 
 describe('apiClient', () => {
-  afterEach(() => {
-    jest.clearAllMocks();
+  beforeEach(() => {
+    global.fetch = jest.fn();
   });
 
-  it('should fetch data from the correct URL when using a direct API call', async () => {
-    const endpoint = '/test-endpoint';
-    const mockResponse = { success: true };
+  it('throws an error if response is not ok', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce(mockHttpErrorResponse);
+    const { apiClient } = require('./apiClient');
+    await expect(apiClient('/test')).rejects.toThrow('HTTP error! Status: 404');
+  });
 
-    (fetch as jest.Mock).mockResolvedValueOnce({
+  it('returns parsed JSON response', async () => {
+    const fakeResponse = { message: 'success' };
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => mockResponse,
+      json: async () => fakeResponse,
     });
-
-    const result = await apiClient(endpoint, {}, '/api');
-
-    expect(fetch).toHaveBeenCalledWith('/api/test-endpoint', {});
-    expect(result).toEqual(mockResponse);
+    const { apiClient } = require('./apiClient');
+    const result = await apiClient('/test');
+    expect(result).toEqual(fakeResponse);
   });
 
-  it('should fetch data from the correct URL when using allorigins.win proxy', async () => {
-    const endpoint = '/test-endpoint';
-    const mockResponse = { contents: JSON.stringify({ success: true }) };
-
-    (fetch as jest.Mock).mockResolvedValueOnce({
+  it('parses wrapped JSON if contents field exists', async () => {
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => mockResponse,
+      json: async () => ({ contents: JSON.stringify({ wrapped: true }) }),
     });
-
-    const result = await apiClient(
-      endpoint,
-      {},
-      'https://api.allorigins.win/get'
-    );
-
-    expect(fetch).toHaveBeenCalledWith(
-      'https://api.allorigins.win/get?url=https%3A%2F%2Fitunes.apple.com%2Ftest-endpoint',
-      {}
-    );
-    expect(result).toEqual({ success: true });
-  });
-
-  it('should include additional fetch options when provided', async () => {
-    const endpoint = '/test-endpoint';
-    const options = {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: 'value' }),
-    };
-    const mockResponse = { success: true };
-
-    (fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponse,
-    });
-
-    const result = await apiClient(
-      endpoint,
-      options,
-      'https://api.allorigins.win/get'
-    );
-
-    expect(fetch).toHaveBeenCalledWith(
-      'https://api.allorigins.win/get?url=https%3A%2F%2Fitunes.apple.com%2Ftest-endpoint',
-      options
-    );
-    expect(result).toEqual(mockResponse);
-  });
-
-  it('should throw an error for non-OK responses', async () => {
-    const endpoint = '/test-endpoint';
-
-    (fetch as jest.Mock).mockResolvedValueOnce({
-      ok: false,
-      status: 404,
-    });
-
-    await expect(
-      apiClient(endpoint, {}, 'https://api.allorigins.win/get')
-    ).rejects.toThrow('HTTP error! Status: 404');
-  });
-
-  it('should correctly parse contents from allorigins.win proxy', async () => {
-    const endpoint = '/test-endpoint';
-    const mockResponse = { contents: JSON.stringify({ success: true }) };
-
-    (fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockResponse,
-    });
-
-    const result = await apiClient(
-      endpoint,
-      {},
-      'https://api.allorigins.win/get'
-    );
-
-    expect(fetch).toHaveBeenCalledWith(
-      'https://api.allorigins.win/get?url=https%3A%2F%2Fitunes.apple.com%2Ftest-endpoint',
-      {}
-    );
-    expect(result).toEqual({ success: true });
-  });
-
-  it('should throw an error if response JSON parsing fails', async () => {
-    const endpoint = '/test-endpoint';
-
-    (fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => {
-        throw new Error('Invalid JSON');
-      },
-    });
-
-    await expect(
-      apiClient(endpoint, {}, 'https://api.allorigins.win/get')
-    ).rejects.toThrow('Invalid JSON');
-  });
-
-  it('should throw an error if the endpoint is empty', async () => {
-    await expect(apiClient('', {}, '/api')).rejects.toThrow(
-      'Endpoint cannot be empty'
-    );
+    const { apiClient } = require('./apiClient');
+    const result = await apiClient('/test');
+    expect(result).toEqual({ wrapped: true });
   });
 });

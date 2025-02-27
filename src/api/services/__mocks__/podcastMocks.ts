@@ -65,6 +65,7 @@ export const mockApiPodcastDetailsResponse = {
       artworkUrl600:
         'https://is1-ssl.mzstatic.com/image/thumb/Podcasts113/v4/f2/21/fa/f221fabd-017f-5125-633b-f1fe4f39802a/mza_182995249085044287.jpg/600x600bb.jpg',
       description: 'Tune into Joe Budden and his friends.',
+      summary: 'Tune into Joe Budden and his friends.',
     },
     {
       trackId: 1,

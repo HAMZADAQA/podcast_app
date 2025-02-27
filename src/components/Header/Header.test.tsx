@@ -1,50 +1,48 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
 import Header from './Header';
-import { usePodcastContext } from '@/context/PodcastContext';
+import { PodcastContext } from '@/context/PodcastContext';
+import { MemoryRouter } from 'react-router-dom';
 
-jest.mock('@/context/PodcastContext', () => ({
-  usePodcastContext: jest.fn(),
-}));
+jest.mock('../Spinner/Spinner', () => () => <div data-testid='spinner' />);
 
-describe('Header Component', () => {
-  it('renders the title link', () => {
-    (usePodcastContext as jest.Mock).mockReturnValue({ globalLoading: false });
-
+describe('Header', () => {
+  it('renders title and does not show spinner when podcastsLoading is false', () => {
     render(
-      <BrowserRouter>
-        <Header />
-      </BrowserRouter>
+      <PodcastContext.Provider
+        value={{
+          podcasts: [],
+          podcastsLoading: false,
+          podcastsError: null,
+          podcastDetails: {},
+          fetchPodcastDetail: async () => {},
+        }}
+      >
+        <MemoryRouter>
+          <Header />
+        </MemoryRouter>
+      </PodcastContext.Provider>
     );
-
-    const titleLink = screen.getByRole('link', { name: /podcaster/i });
-    expect(titleLink).toBeInTheDocument();
-    expect(titleLink).toHaveAttribute('href', '/');
+    expect(screen.getByText('Podcaster')).toBeInTheDocument();
+    expect(screen.queryByTestId('spinner')).toBeNull();
   });
 
-  it('does not render the Spinner when globalLoading is false', () => {
-    (usePodcastContext as jest.Mock).mockReturnValue({ globalLoading: false });
-
+  it('shows spinner when podcastsLoading is true', () => {
     render(
-      <BrowserRouter>
-        <Header />
-      </BrowserRouter>
+      <PodcastContext.Provider
+        value={{
+          podcasts: [],
+          podcastsLoading: true,
+          podcastsError: null,
+          podcastDetails: {},
+          fetchPodcastDetail: async () => {},
+        }}
+      >
+        <MemoryRouter>
+          <Header />
+        </MemoryRouter>
+      </PodcastContext.Provider>
     );
-
-    expect(screen.queryByTestId('spinner-overlay')).not.toBeInTheDocument();
-  });
-
-  it('renders the Spinner when globalLoading is true', () => {
-    (usePodcastContext as jest.Mock).mockReturnValue({ globalLoading: true });
-
-    render(
-      <BrowserRouter>
-        <Header />
-      </BrowserRouter>
-    );
-
-    const spinnerOverlay = screen.getByTestId('spinner-overlay');
-    expect(spinnerOverlay).toBeInTheDocument();
+    expect(screen.getByTestId('spinner')).toBeInTheDocument();
   });
 });

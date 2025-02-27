@@ -1,3 +1,4 @@
+/* PodcastItemSkeleton.module.css */
 @import '@/styles/variables.css';
 
 .podcastItem {
@@ -14,24 +15,6 @@
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
 }
 
-.podcastLink {
-  text-decoration: none;
-  color: inherit;
-  display: block;
-  font-size: var(--font-size-medium);
-  text-decoration: none;
-  transition: color 0.3s ease;
-  text-transform: uppercase;
-}
-.podcastLink:hover {
-  color: var(--color-hover);
-}
-
-.podcastAuthor {
-  font-size: 14px;
-  color: var(--color-text-secondary);
-}
-
 .imageWrapper {
   position: absolute;
   top: -50px;
@@ -45,4 +28,40 @@
   justify-content: center;
   align-items: center;
   box-shadow: var(--box-shadow);
+  animation: shimmer 1.5s infinite;
+}
+
+.details {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.podcastTitle,
+.podcastAuthor {
+  background: linear-gradient(90deg, #e0e0e0, #f5f5f5, #e0e0e0);
+  background-size: 200%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.podcastTitle {
+  height: 20px;
+  width: 80%;
+  margin: 0 auto 10px;
+}
+
+.podcastAuthor {
+  height: 14px;
+  width: 60%;
+  margin: 0 auto;
+}
+
+/* Shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200%;
+  }
+  100% {
+    background-position: 200%;
+  }
 }

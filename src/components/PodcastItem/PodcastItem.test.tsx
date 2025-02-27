@@ -1,44 +1,85 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { render, screen, fireEvent } from '@testing-library/react';
 import PodcastItem from './PodcastItem';
-import { mockCachedPodcastData } from '@/api/services/__mocks__/podcastMocks'; // Adjust path as necessary
+import { MemoryRouter } from 'react-router-dom';
+import {
+  mockCachedPodcastData,
+  mockCachedPodcastDetails,
+} from '@/api/services/__mocks__/podcastMocks';
+import { DetailedPodcast } from '@/types/PodcastTypes';
+import { PodcastContext } from '@/context/PodcastContext';
 
-const mockPodcast = mockCachedPodcastData[0]; // Use the first podcast from the mock data
+describe('PodcastItem', () => {
+  const podcast = mockCachedPodcastData[0];
 
-describe('PodcastItem Component', () => {
-  it('renders the podcast name as a link', () => {
+  it('renders podcast item with image, name, and author', () => {
     render(
-      <BrowserRouter>
-        <PodcastItem podcast={mockPodcast} />
-      </BrowserRouter>
+      <PodcastContext.Provider
+        value={{
+          podcasts: [],
+          podcastsLoading: false,
+          podcastsError: null,
+          podcastDetails: {} as { [podcastId: string]: DetailedPodcast },
+          fetchPodcastDetail: async () => {},
+        }}
+      >
+        <MemoryRouter>
+          <PodcastItem podcast={podcast} />
+        </MemoryRouter>
+      </PodcastContext.Provider>
     );
 
-    const linkElement = screen.getByRole('link', { name: mockPodcast.name });
-    expect(linkElement).toBeInTheDocument();
-    expect(linkElement).toHaveAttribute('href', `/podcast/${mockPodcast.id}`);
+    expect(screen.getByAltText(podcast.name)).toHaveAttribute(
+      'src',
+      podcast.artwork
+    );
+    expect(screen.getByText(podcast.name)).toBeInTheDocument();
+    expect(screen.getByText(`Author: ${podcast.artist}`)).toBeInTheDocument();
   });
 
-  it('renders the podcast artist name', () => {
+  it('calls fetchPodcastDetail on mouse enter when detail is not cached', () => {
+    const fetchPodcastDetail = jest.fn();
     render(
-      <BrowserRouter>
-        <PodcastItem podcast={mockPodcast} />
-      </BrowserRouter>
+      <PodcastContext.Provider
+        value={{
+          podcasts: [],
+          podcastsLoading: false,
+          podcastsError: null,
+          podcastDetails: {} as { [podcastId: string]: DetailedPodcast },
+          fetchPodcastDetail,
+        }}
+      >
+        <MemoryRouter>
+          <PodcastItem podcast={podcast} />
+        </MemoryRouter>
+      </PodcastContext.Provider>
     );
 
-    const artistElement = screen.getByText(`Author: ${mockPodcast.artist}`);
-    expect(artistElement).toBeInTheDocument();
+    const link = screen.getByRole('link', { name: podcast.name });
+    fireEvent.mouseEnter(link);
+    expect(fetchPodcastDetail).toHaveBeenCalledWith(podcast.id, true);
   });
 
-  it('renders the podcast artwork image', () => {
+  it('does not call fetchPodcastDetail on mouse enter when detail is already cached', () => {
+    const fetchPodcastDetail = jest.fn();
     render(
-      <BrowserRouter>
-        <PodcastItem podcast={mockPodcast} />
-      </BrowserRouter>
+      <PodcastContext.Provider
+        value={{
+          podcasts: [],
+          podcastsLoading: false,
+          podcastsError: null,
+          podcastDetails: { [podcast.id]: mockCachedPodcastDetails },
+          fetchPodcastDetail,
+        }}
+      >
+        <MemoryRouter>
+          <PodcastItem podcast={podcast} />
+        </MemoryRouter>
+      </PodcastContext.Provider>
     );
 
-    const imageElement = screen.getByAltText(mockPodcast.name);
-    expect(imageElement).toBeInTheDocument();
-    expect(imageElement).toHaveAttribute('src', mockPodcast.artwork);
+    const link = screen.getByRole('link', { name: podcast.name });
+    fireEvent.mouseEnter(link);
+    expect(fetchPodcastDetail).not.toHaveBeenCalled();
   });
 });

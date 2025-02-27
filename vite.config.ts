@@ -7,11 +7,18 @@ export default defineConfig(({ mode }) => ({
   plugins: [react(), tsconfigPaths()],
   server: {
     port: 3000,
+    strictPort: true,
     proxy: {
-      '/api': {
+      '/lookup': {
         target: 'https://itunes.apple.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
+        rewrite: (path) => path,
+        secure: false,
+      },
+      '/us/rss': {
+        target: 'https://itunes.apple.com',
+        changeOrigin: true,
+        secure: false,
       },
     },
   },

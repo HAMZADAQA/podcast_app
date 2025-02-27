@@ -1,35 +1,21 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
-import { usePodcastContext } from '@/context/PodcastContext';
 import PodcastCard from '@/components/PodcastCard/PodcastCard';
 import ErrorMessage from '@/components/ErrorMessage/ErrorMessage';
 import styles from './PodcastEpisode.module.css';
-import { Episode } from '@/types/PodcastTypes';
+import { usePodcastDetail } from '@/hooks/usePodcastDetail';
 
 const PodcastEpisode: React.FC = () => {
-  const { podcastId, episodeId } = useParams<{
-    podcastId: string;
-    episodeId: string;
-  }>();
-  const { podcastDetail, fetchPodcastDetail } = usePodcastContext();
+  const { episodeId } = useParams<{ episodeId: string }>();
+  const { podcastId, podcastDetail } = usePodcastDetail();
 
-  useEffect(() => {
-    if (!podcastDetail || podcastDetail.id !== podcastId) {
-      fetchPodcastDetail(podcastId!);
-    }
-  }, [podcastId, podcastDetail, fetchPodcastDetail]);
+  if (!podcastId) return <ErrorMessage message='No podcast selected.' />;
+  if (!podcastDetail) return <p>Loading episode details...</p>;
 
-  if (!podcastDetail || podcastDetail.id !== podcastId) {
-    return null;
-  }
-
-  const episode: Episode | undefined = podcastDetail.episodes.find(
-    (ep) => ep.trackId === Number(episodeId)
+  const episode = podcastDetail.episodes.find(
+    (ep: any) => String(ep.trackId) === episodeId
   );
-
-  if (!episode) {
-    return <ErrorMessage message='Episode not found.' />;
-  }
+  if (!episode) return <ErrorMessage message='Episode not found.' />;
 
   return (
     <div className={styles.container}>

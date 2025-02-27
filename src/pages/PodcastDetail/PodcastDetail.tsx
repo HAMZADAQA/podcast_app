@@ -1,50 +1,31 @@
-import React, { useEffect, lazy } from 'react';
-import { useParams } from 'react-router-dom';
-import { usePodcastContext } from '@/context/PodcastContext';
+import React from 'react';
 import EpisodeTable from '@/components/EpisodeTable/EpisodeTable';
-const PodcastCard = lazy(() => import('@/components/PodcastCard/PodcastCard'));
 import ErrorMessage from '@/components/ErrorMessage/ErrorMessage';
 import styles from './PodcastDetail.module.css';
+import PodcastCard from '@/components/PodcastCard/PodcastCard';
+import { usePodcastDetail } from '@/hooks/usePodcastDetail';
 
 const PodcastDetail: React.FC = () => {
-  const { podcastId } = useParams<{ podcastId: string }>();
-  const { podcastDetail, fetchPodcastDetail, error } = usePodcastContext();
+  const { podcastId, podcastDetail } = usePodcastDetail();
 
-  useEffect(() => {
-    if (podcastId) {
-      fetchPodcastDetail(podcastId);
-    }
-  }, [podcastId, fetchPodcastDetail]);
-
-  const isDataValid = podcastDetail?.id === podcastId;
-
-  if (error) {
-    return <ErrorMessage message={error} />;
-  }
-
-  if (!isDataValid) {
-    return null;
-  }
-
-  const episodes = podcastDetail?.episodes || [];
+  if (!podcastId) return <ErrorMessage message='No podcast selected.' />;
+  if (!podcastDetail) return null;
 
   return (
     <div className={styles.container}>
       <aside className={styles.sidebar}>
         <PodcastCard
-          image={podcastDetail?.artworkUrl600 || ''}
-          title={podcastDetail?.collectionName || 'Unknown Title'}
-          author={podcastDetail?.artistName || 'Unknown Author'}
-          description={podcastDetail?.summary || 'No summary available'}
+          image={podcastDetail.artworkUrl600}
+          title={podcastDetail.collectionName || 'Unknown Title'}
+          author={podcastDetail.artistName || 'Unknown Author'}
+          description={podcastDetail.summary || 'No summary available'}
         />
       </aside>
       <main className={styles.content}>
-        <div className={styles.episodesTitleWrapper}>
-          <h2 className={styles.episodesTitle}>Episodes: {episodes.length}</h2>
-        </div>
-        <div className={styles.episodeTableWrapper}>
-          <EpisodeTable episodes={episodes} podcastId={podcastId!} />
-        </div>
+        <h2 className={styles.episodesTitle}>
+          Episodes: {podcastDetail.episodes.length}
+        </h2>
+        <EpisodeTable episodes={podcastDetail.episodes} podcastId={podcastId} />
       </main>
     </div>
   );

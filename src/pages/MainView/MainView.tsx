@@ -7,20 +7,11 @@ import ErrorMessage from '@/components/ErrorMessage/ErrorMessage';
 import styles from './MainView.module.css';
 
 const MainView: React.FC = () => {
-  const { podcasts, error } = usePodcastContext();
   const [searchTerm, setSearchTerm] = useState('');
-
+  const { podcasts, podcastsLoading, podcastsError } = usePodcastContext();
   const filteredPodcasts = useFilteredPodcasts(podcasts, searchTerm);
 
-  const isFetching = !podcasts || podcasts.length === 0;
-
-  if (error) {
-    return <ErrorMessage message={error} />;
-  }
-
-  if (isFetching) {
-    return null;
-  }
+  if (podcastsError) return <ErrorMessage message={podcastsError} />;
 
   return (
     <div className={styles.container}>
@@ -30,7 +21,7 @@ const MainView: React.FC = () => {
       </div>
 
       {filteredPodcasts.length > 0 || searchTerm === '' ? (
-        <PodcastList podcasts={filteredPodcasts} />
+        <PodcastList podcasts={filteredPodcasts} loading={podcastsLoading} />
       ) : (
         <div className={styles.noResults}>
           <img

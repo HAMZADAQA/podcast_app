@@ -1,28 +1,23 @@
 import { formatDuration } from './formatUtils';
 
-describe('formatDuration Utility', () => {
-  it('formats durations less than one minute correctly', () => {
-    const result = formatDuration(45000); // 45 seconds
-    expect(result).toBe('0:45');
+describe('formatDuration', () => {
+  it('returns "0:00" for 0 milliseconds', () => {
+    expect(formatDuration(0)).toBe('0:00');
   });
 
-  it('formats durations exactly one minute correctly', () => {
-    const result = formatDuration(60000); // 1 minute
-    expect(result).toBe('1:00');
+  it('formats durations under one hour with mm:ss (with leading zero for seconds)', () => {
+    expect(formatDuration(62000)).toBe('1:02');
+
+    expect(formatDuration(75000)).toBe('1:15');
+
+    expect(formatDuration(3599000)).toBe('59:59');
   });
 
-  it('formats durations greater than one minute correctly', () => {
-    const result = formatDuration(125000); // 2 minutes and 5 seconds
-    expect(result).toBe('2:05');
-  });
+  it('formats durations of one hour or more as "X hr Y min"', () => {
+    expect(formatDuration(3600000)).toBe('1 hr 0 min');
 
-  it('formats durations with single-digit seconds correctly', () => {
-    const result = formatDuration(61000); // 1 minute and 1 second
-    expect(result).toBe('1:01');
-  });
+    expect(formatDuration(4500000)).toBe('1 hr 15 min');
 
-  it('formats durations with zero seconds correctly', () => {
-    const result = formatDuration(120000); // 2 minutes
-    expect(result).toBe('2:00');
+    expect(formatDuration(7200000)).toBe('2 hr 0 min');
   });
 });
